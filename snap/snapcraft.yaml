@@ -1,7 +1,7 @@
 name: qalculate-qt
 adopt-info: qalculate-qt
 title: Qalculate! (Qt)
-version: '5.13.0+ytret1'
+version: '5.13.0+ytret2'
 license: GPL-2.0+
 summary: The ultimate desktop calculator
 description: |

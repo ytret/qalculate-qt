@@ -21,16 +21,17 @@ In a terminal window in the top source code directory run
 
 The resulting executable is named `qalculate-qt`.
 
-## Fork release 5.13.0+ytret1
+## Fork release 5.13.0+ytret2
 
 This [fork of Qalculate! Qt](https://github.com/ytret/qalculate-qt) includes
-the desktop activation and expression focus fixes, plus the Number bases
-theme change fix. Its release tag is `v5.13.0+ytret1`.
+the desktop activation and expression focus fixes, the Number bases
+theme change fix, and fixes for history colors and toolbar icon contrast
+when changing the macOS appearance. Its release tag is `v5.13.0+ytret2`.
 
 Clone the fork and check out the release:
 
 ```sh
-git clone --branch v5.13.0+ytret1 https://github.com/ytret/qalculate-qt.git
+git clone --branch v5.13.0+ytret2 https://github.com/ytret/qalculate-qt.git
 cd qalculate-qt
 ```
 
@@ -49,7 +50,7 @@ QT_QPA_PLATFORM=offscreen /usr/local/bin/qalculate-qt --version
 ```
 
 Use `qmake6` instead of `qmake` to build with Qt 6. The version command should
-print `5.13.0+ytret1`. Installation includes the desktop entry, translations,
+print `5.13.0+ytret2`. Installation includes the desktop entry, translations,
 icons, and manual, with the executable at `/usr/local/bin/qalculate-qt`.
 The Snap recipe builds this checkout and keeps libqalculate at upstream 5.13.0.
 
@@ -74,7 +75,7 @@ make -j"$(sysctl -n hw.ncpu)"
 open qalculate-qt.app
 ```
 
-The version command should print `5.13.0+ytret1`. To install for your user,
+The version command should print `5.13.0+ytret2`. To install for your user,
 copy the bundle to `~/Applications`:
 
 ```sh
@@ -84,9 +85,8 @@ cp -R qalculate-qt.app "$HOME/Applications/"
 
 These instructions follow the dependencies and bundle layout used by
 [Homebrew's Qalculate! Qt formula](https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/q/qalculate-qt.rb).
-The fork has been built and tested on Linux; its macOS build has not been
-tested here. This build uses the installed Homebrew libraries and libqalculate
-data files. See [Qt's macOS deployment guide](https://doc.qt.io/qt-6/macos-deployment.html)
+The macOS theme fixes were verified with Homebrew Qt 6.12.0. This build uses
+the installed Homebrew libraries and libqalculate data files. See [Qt's macOS deployment guide](https://doc.qt.io/qt-6/macos-deployment.html)
 for distributing an application bundle with its runtime dependencies.
 
 ## Features

@@ -79,6 +79,15 @@
  </provides>
  <translation type="qt">qalculate-qt</translation>
  <releases>
+  <release version="5.13.0+ytret2" date="2026-10-23">
+   <description>
+    <p>Fix colors when changing the macOS appearance:</p>
+    <ul>
+     <li>Update history syntax colors using the current theme before rebuilding the history</li>
+     <li>Keep toolbar icons readable when the theme changes while the calculator is inactive</li>
+    </ul>
+   </description>
+  </release>
   <release version="5.13.0+ytret1" date="2026-10-23">
    <description>
     <p>Fork release with fixes for desktop activation and theme changes:</p>
