@@ -860,6 +860,9 @@ void HistoryView::setReversed(bool b) {
 }
 void HistoryView::changeEvent(QEvent *e) {
 	if(e->type() == QEvent::PaletteChange || e->type() == QEvent::ApplicationPaletteChange) {
+		// Class-specific palette changes can reach the history before the main window.
+		QColor c = QApplication::palette().base().color();
+		settings->color = c.red() + c.green() + c.blue() < 255 ? 2 : 1;
 		text_color = palette().text().color();
 		setTextColor(text_color);
 		for(size_t i = 0; i < settings->v_expression.size(); i++) {
