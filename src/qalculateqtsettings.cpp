@@ -314,7 +314,8 @@ bool QalculateQtSettings::isAnswerVariable(Variable *v) {
 #include <QTemporaryFile>
 bool QalculateQtSettings::useColoredIcon(QWidget *w) {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
-	QColor c = w->palette().buttonText().color();
+	// Choose icon assets independently of focus; QIcon handles disabled rendering.
+	QColor c = w->palette().color(QPalette::Active, QPalette::ButtonText);
 	bool light = c.red() + c.green() + c.blue() < 255;
 	if(!light && c.lightness() >= 235 && c.saturation() <= 5) return false;
 	else if(light && c.lightness() <= 50 && c.saturation() <= 50) return false;
@@ -324,7 +325,7 @@ bool QalculateQtSettings::useColoredIcon(QWidget *w) {
 }
 QIcon QalculateQtSettings::loadColoredIcon(const QString &str, QWidget *w) {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
-	QColor c = w->palette().buttonText().color();
+	QColor c = w->palette().color(QPalette::Active, QPalette::ButtonText);
 	bool light = c.red() + c.green() + c.blue() < 255;
 	if(!light && c.lightness() >= 235 && c.saturation() <= 5) return QIcon(":/icons/dark/actions/scalable/" + str + ".svg");
 	else if(light && c.lightness() <= 50 && c.saturation() <= 50) return QIcon(":/icons/actions/scalable/" + str + ".svg");
@@ -344,7 +345,7 @@ QIcon QalculateQtSettings::loadColoredIcon(const QString &str, QWidget *w) {
 #endif
 }
 QIcon load_icon(const QString &str, QWidget *w) {
-	QColor c = w->palette().buttonText().color();
+	QColor c = w->palette().color(QPalette::Active, QPalette::ButtonText);
 	if(c.red() + c.green() + c.blue() < 255) return QIcon(":/icons/actions/scalable/" + str + ".svg");
 	else return QIcon(":/icons/dark/actions/scalable/" + str + ".svg");
 }
