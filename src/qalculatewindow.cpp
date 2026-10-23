@@ -8288,6 +8288,8 @@ void QalculateWindow::changeEvent(QEvent *e) {
 		rpnLastxAction->setIcon(LOAD_COLORED_ICON("edit-undo"));
 		rpnDeleteAction->setIcon(LOAD_COLORED_ICON("edit-delete"));
 		rpnClearAction->setIcon(LOAD_COLORED_ICON("edit-clear"));
+		// Refresh the explicit bit-link colors after the new palette reaches binEdit.
+		QTimer::singleShot(0, this, [this]() { updateResultBases(); });
 	} else if(e->type() == QEvent::FontChange || e->type() == QEvent::ApplicationFontChange) {
 		if(!settings->use_custom_expression_font) {
 			QFont font(QApplication::font());
