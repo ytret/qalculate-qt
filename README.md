@@ -21,6 +21,74 @@ In a terminal window in the top source code directory run
 
 The resulting executable is named `qalculate-qt`.
 
+## Fork release 5.13.0+ytret1
+
+This [fork of Qalculate! Qt](https://github.com/ytret/qalculate-qt) includes
+the desktop activation and expression focus fixes, plus the Number bases
+theme change fix. Its release tag is `v5.13.0+ytret1`.
+
+Clone the fork and check out the release:
+
+```sh
+git clone --branch v5.13.0+ytret1 https://github.com/ytret/qalculate-qt.git
+cd qalculate-qt
+```
+
+### Linux
+
+Install a C++ compiler, make, pkg-config, Qt Widgets
+and Qt Network development packages, Qt Linguist tools (`lrelease`), and the
+libqalculate development package. Install the libxcb development package to
+enable X11 activation support. Build and install with:
+
+```sh
+qmake qalculate-qt.pro PREFIX=/usr/local
+make -j"$(nproc)"
+sudo make install
+QT_QPA_PLATFORM=offscreen /usr/local/bin/qalculate-qt --version
+```
+
+Use `qmake6` instead of `qmake` to build with Qt 6. The version command should
+print `5.13.0+ytret1`. Installation includes the desktop entry, translations,
+icons, and manual, with the executable at `/usr/local/bin/qalculate-qt`.
+The Snap recipe builds this checkout and keeps libqalculate at upstream 5.13.0.
+
+### macOS
+
+The project supports macOS and produces `qalculate-qt.app`. Install the Xcode
+Command Line Tools (`xcode-select --install`, if needed) and
+[Homebrew](https://brew.sh/), then install the build dependencies:
+
+```sh
+brew install pkgconf qtbase qttools libqalculate gmp mpfr
+```
+
+In the source directory, build with Homebrew's Qt 6:
+
+```sh
+export PATH="$(brew --prefix qtbase)/bin:$(brew --prefix qttools)/bin:$PATH"
+export PKG_CONFIG_PATH="$(brew --prefix libqalculate)/lib/pkgconfig:$(brew --prefix gmp)/lib/pkgconfig:$(brew --prefix mpfr)/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+qmake qalculate-qt.pro
+make -j"$(sysctl -n hw.ncpu)"
+./qalculate-qt.app/Contents/MacOS/qalculate-qt --version
+open qalculate-qt.app
+```
+
+The version command should print `5.13.0+ytret1`. To install for your user,
+copy the bundle to `~/Applications`:
+
+```sh
+mkdir -p "$HOME/Applications"
+cp -R qalculate-qt.app "$HOME/Applications/"
+```
+
+These instructions follow the dependencies and bundle layout used by
+[Homebrew's Qalculate! Qt formula](https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/q/qalculate-qt.rb).
+The fork has been built and tested on Linux; its macOS build has not been
+tested here. This build uses the installed Homebrew libraries and libqalculate
+data files. See [Qt's macOS deployment guide](https://doc.qt.io/qt-6/macos-deployment.html)
+for distributing an application bundle with its runtime dependencies.
+
 ## Features
 
 *Features specific to qalculate-qt:*

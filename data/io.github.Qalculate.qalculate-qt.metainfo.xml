@@ -79,6 +79,15 @@
  </provides>
  <translation type="qt">qalculate-qt</translation>
  <releases>
+  <release version="5.13.0+ytret1" date="2026-10-23">
+   <description>
+    <p>Fork release with fixes for desktop activation and theme changes:</p>
+    <ul>
+     <li>Add fast --activate handling and reliably focus the expression entry when launching or activating the calculator</li>
+     <li>Refresh binary digit colors in the Number bases view after theme changes</li>
+    </ul>
+   </description>
+  </release>
   <release version="5.13.0" date="2026-10-05">
    <description>
     <p>Changes:</p>
