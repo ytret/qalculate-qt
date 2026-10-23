@@ -40,6 +40,10 @@ win32: {
 }
 CONFIG += qt
 QT += widgets network
+unix:!macx:!android:packagesExist(xcb) {
+	PKGCONFIG += xcb
+	DEFINES += HAVE_XCB_ACTIVATION
+}
 MOC_DIR = build
 OBJECTS_DIR = build
 

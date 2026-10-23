@@ -46,6 +46,18 @@ QTranslator translator, translator_qt, translator_qtbase;
 
 int main(int argc, char **argv) {
 
+	// A shortcut activation needs only IPC when the main window already exists.
+	// Avoid loading the GUI platform, theme, translations, and single-instance lock.
+	if(argc == 2 && qstrcmp(argv[1], "--activate") == 0) {
+		QCoreApplication activationApp(argc, argv);
+		QLocalSocket socket;
+		socket.connectToServer("qalculate-qt");
+		if(socket.waitForConnected(100)) {
+			socket.write("a");
+			return socket.waitForBytesWritten(1000) ? 0 : 1;
+		}
+	}
+
 #ifdef _WIN32
 	if(!qEnvironmentVariableIsSet("QT_QPA_PLATFORM")) {
 		qputenv("QT_QPA_PLATFORM", "windows:altgr");
@@ -130,6 +142,8 @@ int main(int argc, char **argv) {
 	parser->addOption(fOption);
 	QCommandLineOption nOption(QStringList() << "n" << "new-instance", QApplication::tr("Start a new instance of the application"));
 	parser->addOption(nOption);
+	QCommandLineOption activateOption(QStringList() << "activate", QApplication::tr("Activate the existing window and focus the expression entry, or start the application"));
+	parser->addOption(activateOption);
 	QCommandLineOption tOption(QStringList() << "title", QApplication::tr("Specify the window title"), QApplication::tr("TITLE"));
 	parser->addOption(tOption);
 	QCommandLineOption uOption(QStringList() << "update-exchange-rates", QApplication::tr("Update exchange rates"));
@@ -163,7 +177,7 @@ int main(int argc, char **argv) {
 	if(settings->allow_multiple_instances < 1 && !parser->isSet(nOption) && !lockFile.tryLock(100)) {
 		if(lockFile.error() == QLockFile::LockFailedError) {
 			bool ami_changed = false;
-			if(settings->allow_multiple_instances < 0 && parser->value(fOption).isEmpty() && parser->value(wOption).isEmpty() && parser->positionalArguments().isEmpty()) {
+			if(settings->allow_multiple_instances < 0 && !parser->isSet(activateOption) && parser->value(fOption).isEmpty() && parser->value(wOption).isEmpty() && parser->positionalArguments().isEmpty()) {
 				settings->allow_multiple_instances = (QMessageBox::question(NULL, QApplication::tr("Allow multiple instances?"), QApplication::tr("By default, only one instance (one main window) of %1 is allowed.\n\nIf multiple instances are opened simultaneously, only the definitions (variables, functions, etc.), mode, preferences, and history of the last closed window will be saved.\n\nDo you, despite this, want to change the default behavior and allow multiple simultaneous instances?").arg("Qalculate!"), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes);
 				ami_changed = true;
 				if(settings->allow_multiple_instances) {
@@ -203,7 +217,7 @@ int main(int argc, char **argv) {
 					} else if(ami_changed) {
 						command = "-";
 					} else {
-						command = "0";
+						command = parser->isSet(activateOption) ? "a" : "0";
 					}
 					QStringList args = parser->positionalArguments();
 					for(int i = 0; i < args.count(); i++) {

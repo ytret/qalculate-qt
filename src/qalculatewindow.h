@@ -73,7 +73,7 @@ class QalculateWindow : public QMainWindow {
 
 	protected:
 
-		QLocalSocket *socket;
+		void activateForShortcut();
 		QLocalServer *server;
 		QCommandLineParser *parser;
 

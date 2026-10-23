@@ -56,6 +56,9 @@
 #	include <QStyleHints>
 #endif
 #include <QDebug>
+#ifdef HAVE_XCB_ACTIVATION
+#	include <xcb/xcb.h>
+#endif
 
 #include "qalculatewindow.h"
 #include "qalculateqtsettings.h"
@@ -3726,14 +3729,55 @@ void QalculateWindow::onExpandClicked() {
 void QalculateWindow::onExpandPartialFractionsClicked() {
 	executeCommand(COMMAND_EXPAND_PARTIAL_FRACTIONS);
 }
+void QalculateWindow::activateForShortcut() {
+	setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+	show();
+	raise();
+	activateWindow();
+	expressionEdit->setFocus();
+#ifdef HAVE_XCB_ACTIVATION
+	// An explicit shortcut request may activate a window even if its last
+	// input timestamp is older than that of the currently focused application.
+	if(QGuiApplication::platformName() == "xcb") {
+		int screen_number = 0;
+		xcb_connection_t *connection = xcb_connect(NULL, &screen_number);
+		if(!xcb_connection_has_error(connection)) {
+			xcb_screen_iterator_t screen = xcb_setup_roots_iterator(xcb_get_setup(connection));
+			for(int i = 0; i < screen_number && screen.rem; i++) xcb_screen_next(&screen);
+			const char atom_name[] = "_NET_ACTIVE_WINDOW";
+			xcb_intern_atom_reply_t *atom = xcb_intern_atom_reply(connection, xcb_intern_atom(connection, false, sizeof(atom_name) - 1, atom_name), NULL);
+			if(screen.rem && atom) {
+				xcb_client_message_event_t event = {};
+				event.response_type = XCB_CLIENT_MESSAGE;
+				event.format = 32;
+				event.window = winId();
+				event.type = atom->atom;
+				event.data.data32[0] = 2; // Window-manager/pager activation request.
+				event.data.data32[1] = XCB_CURRENT_TIME;
+				// Wait until X11 has processed the request before disconnecting.
+				// Flushing alone can lose the event when this temporary client exits.
+				xcb_void_cookie_t request = xcb_send_event_checked(connection, false, screen.data->root, XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY, reinterpret_cast<const char*>(&event));
+				free(xcb_request_check(connection, request));
+			}
+			free(atom);
+		}
+		xcb_disconnect(connection);
+	}
+#endif
+}
 void QalculateWindow::serverNewConnection() {
-	socket = server->nextPendingConnection();
-	if(socket) {
+	while(server->hasPendingConnections()) {
+		QLocalSocket *socket = server->nextPendingConnection();
 		connect(socket, SIGNAL(readyRead()), this, SLOT(socketReadyRead()));
+		connect(socket, SIGNAL(disconnected()), socket, SLOT(deleteLater()));
+		if(socket->bytesAvailable() > 0) QMetaObject::invokeMethod(socket, "readyRead", Qt::QueuedConnection);
 	}
 }
 void QalculateWindow::socketReadyRead() {
+	QLocalSocket *socket = qobject_cast<QLocalSocket*>(sender());
+	if(!socket) return;
 	QString command = socket->readAll();
+	if(command.isEmpty()) return;
 	if(!command.isEmpty() && command[0] == '+') {
 		settings->window_state = saveState();
 		settings->window_geometry = saveGeometry();
@@ -3743,12 +3787,16 @@ void QalculateWindow::socketReadyRead() {
 		settings->savePreferences(false);
 		return;
 	}
+	if(command == "a") {
+		activateForShortcut();
+		return;
+	}
 	setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
 	show();
 	qApp->processEvents();
 	raise();
 	activateWindow();
-	if(command.isEmpty()) return;
+	expressionEdit->setFocus();
 	if(command[0] == '-') {
 		settings->window_state = saveState();
 		if(height() != DEFAULT_HEIGHT || width() != DEFAULT_WIDTH) settings->window_geometry = saveGeometry();
@@ -3808,6 +3856,7 @@ void QalculateWindow::onActivateRequested(const QStringList &arguments, const QS
 	qApp->processEvents();
 	raise();
 	activateWindow();
+	expressionEdit->setFocus();
 }
 void QalculateWindow::setCommandLineParser(QCommandLineParser *p) {
 	parser = p;
@@ -8835,6 +8884,8 @@ void QalculateWindow::resetKeypadPosition() {
 }
 void QalculateWindow::initFinished() {
 	init_in_progress = false;
+	expressionEdit->setFocus();
+	if(parser->isSet("activate")) activateForShortcut();
 }
 #define DOCK_IN_WINDOW(dock) (!dock->isFloating() && (dockWidgetArea(dock) == Qt::BottomDockWidgetArea || dockWidgetArea(dock) == Qt::TopDockWidgetArea))
 #define DOCK_VISIBLE_IN_WINDOW(dock) (dock->isVisible() && DOCK_IN_WINDOW(dock))
